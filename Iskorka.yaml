@@ -1,0 +1,400 @@
+openapi: 3.0.1
+info:
+  title: API кинотеатра Искорка
+  description: |
+    __API кинотетатра "Искорка"__
+  version: 1.0.0
+servers: 
+  - url: https://virtserver.swaggerhub.com/vasina/Iskorka/1.0.0
+  - url: http://127.0.1.1
+paths:
+  /sessions:
+    get:
+      summary: Расписание
+      description: Метод запроса расписания в кинотеатре
+      tags:
+        - Расписание
+      parameters:
+        - name: date
+          in: query
+          description: Выбор даты
+          schema:
+            type: string
+            format: date
+          example: "22-01-2026"
+        - name: timePeriod
+          in: query
+          description: Выбор времени дня
+          schema:
+            type: string
+            enum:
+              - "Утро (с 09-00 до 12-00)"
+              - "День (с 12-00 до 17-00)"
+              - "Вечер (с 17-00 до 22-00)"
+          example: "Утро (с 09-00 до 12-00)"
+        - name: freeSeats
+          in: query
+          description: Есть ли свободные места
+          schema:
+            type: boolean
+            default: true
+        - name: sort
+          in: query
+          description: Порядок вывода расписания
+          schema:
+            type: string
+            default: [byDateAsc, byTimePeriodAsc]
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    sessionId: 
+                      $ref: '#/components/schemas/sessionId'
+                    date:
+                      $ref: '#/components/schemas/date'
+                    time:
+                      $ref: '#/components/schemas/time'
+                    film: 
+                      $ref: '#/components/schemas/film'
+                    freeSeats: 
+                      $ref: '#/components/schemas/freeSeats'
+  /sessions/{sessionId}:
+    get:
+      summary: Наличие мест на сеанс
+      description: Метод выбора мест на сеанс
+      tags:
+        - Просмотр сеанса
+      parameters:
+        - name: sessionId
+          description: Сеанс кинопоказа
+          in: path
+          required: true
+          schema:
+            description: идентификатор сеана
+            type: integer
+            example: 111
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionId: 
+                    $ref: '#/components/schemas/sessionId'
+                  date:
+                    $ref: '#/components/schemas/date'
+                  time:
+                    $ref: '#/components/schemas/time'
+                  film: 
+                    $ref: '#/components/schemas/film'
+                  price:
+                    $ref: '#/components/schemas/price'
+                  hall:
+                    $ref: '#/components/schemas/hall'
+    patch:
+      summary: Изменение времени сеанса
+      description: Метод изменения времени сеанса (доступен для администратора кинотеатра)
+      tags:
+        - Время сеанса
+      parameters:
+        - name: sessionId
+          description: идентификатор сеанса
+          in: path
+          required: true
+          schema:
+            description: идентификатор сеанса
+            type: integer
+            example: 111
+      requestBody:
+        content:
+          application\json:
+            schema:
+              type: object
+              properties:
+                sessionId: 
+                  $ref: '#/components/schemas/sessionId'
+                date:
+                  $ref: '#/components/schemas/date'
+                time:
+                  $ref: '#/components/schemas/time'
+                film: 
+                  $ref: '#/components/schemas/film'
+      responses:                    
+       '200':
+          description: Ok
+          content:
+            application\json:
+              schema:
+                type: object
+                properties:
+                  sessionId: 
+                    $ref: '#/components/schemas/sessionId'
+                  date:
+                    $ref: '#/components/schemas/date'
+                  time:
+                    $ref: '#/components/schemas/time'
+                  film: 
+                    $ref: '#/components/schemas/film'
+  /booking:
+    get:
+      summary: Список бронирований
+      description: |
+        Метод для вывода всех бронирований <br/>
+        Пользователь должен быть авторизован
+      tags:
+        - Бронирования
+      responses:
+        '200':
+            description: Ok
+            content:
+              application\json:
+                schema:
+                  type: object
+                  properties:
+                    bookingId: 
+                      $ref: '#/components/schemas/bookingId'
+                    session:
+                      $ref: '#/components/schemas/session'
+                    status:
+                      $ref: '#/components/schemas/status'
+    post:
+      summary: Создать заказ
+      description: |
+        Метод для создания заказа<br/>
+        Пользователь должен быть авторизован
+      tags:
+        - Заказы
+      requestBody:
+        content:
+          application\json:
+            schema:
+              type: object
+              properties:
+                bookingId: 
+                  $ref: '#/components/schemas/booking'
+      responses:
+        '200':
+            description: Ok
+            content:
+              application\json:
+                schema:
+                  $ref: '#/components/schemas/booking'
+      
+  /booking/{bookingId}:
+    get:
+      summary: Информация о бронировании
+      description: |
+        Метод для просмотра бронирования <br/>
+        Пользователь должен быть авторизован
+      tags:
+        - Бронирование
+      parameters:
+        - name: bookingId
+          description: Идентификатор бронирования
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/bookingId'
+      responses:
+        '200':
+            description: Ok
+            content:
+              application\json:
+                schema:
+                  $ref: '#/components/schemas/booking'
+        '401':
+            description: 401 Unauthorized
+            content:
+              application\json:
+                schema:
+                  $ref: '#/components/schemas/ErrorMessage'
+    patch:
+      summary: Отмена бронирования (не delete)
+      description: |
+        Метод для отмены бронирования (без полного удаления бронирования) <br/>
+        Пользователь должен быть авторизован
+      tags:
+        - Отмена бронирования
+      parameters:
+        - name: bookingId
+          description: Идентификатор бронирования
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/bookingId'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application\json:
+              schema:
+                type: object
+                properties:
+                  bookingId: 
+                    $ref: '#/components/schemas/bookingId'
+                  state:
+                    type: string
+                    enum:
+                       - canceled   
+        '401':
+            description: 401 Unauthorized
+            content:
+              application\json:
+                schema:
+                  $ref: '#/components/schemas/ErrorMessage'              
+                  
+components:
+  schemas:
+    sessionId: 
+      description: идентификатор сеанса
+      type: integer
+      example: 111
+    date:
+      description: дата сеанса
+      type: string
+      format: date
+      example: 22-03-2026
+    time:
+      description: время сеанса
+      type: string
+      format: time
+      example: "09:30"
+    film: 
+      description: Расписание
+      type: string
+      example: Домовенок Кузя
+    price:
+      description: Цена
+      type: string
+      example: "500.00"
+    hall:
+      description: зал
+      type: array
+      items:
+        type: object
+        properties:
+          row:
+            description: ряд
+            type: integer
+            enum:
+              - 1
+              - 2
+              - 3
+              - 4
+              - 5
+              - 6
+              - 7
+            example: 3
+          seat:
+            description: место
+            type: integer
+            enum:
+              - 1
+              - 2
+              - 3
+              - 4
+              - 5
+              - 6
+              - 7
+              - 8
+              - 9
+            example: 5
+    freeSeats: 
+      type: boolean
+      description: Наличие свободных мест
+      example: true
+    bookingId: 
+      description: идентификатор бронирования
+      type: integer
+      example: 123
+    status: 
+      description: Статус бронирования
+      type: string
+      enum:
+         - new
+         - done
+         - deleted
+    place: 
+      description: Забронированное место
+      type: object
+      properties:
+        row:
+          description: ряд
+          type: integer
+          enum:
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+            - 6
+            - 7
+          example: 3
+        seat:
+          description: место
+          type: integer
+          enum:
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+            - 6
+            - 7
+            - 8
+            - 9
+          example: 5
+    customerId: 
+      description: идентификатор пользователя
+      type: integer
+      example: 123
+    session:
+      type: object
+      properties:
+        sessionId: 
+          $ref: '#/components/schemas/sessionId'
+        date: 
+          $ref: '#/components/schemas/date'
+        time: 
+          $ref: '#/components/schemas/time'
+        film:
+          $ref: '#/components/schemas/film'
+        price:
+          $ref: '#/components/schemas/price'
+    booking:
+      type: object
+      properties:
+        sessionId: 
+          $ref: '#/components/schemas/bookingId'
+        customerId: 
+          $ref: '#/components/schemas/customerId'
+        session: 
+          $ref: '#/components/schemas/session'
+        place: 
+          $ref: '#/components/schemas/place'
+    ErrorMessage:
+      type: object
+      properties: 
+        code:
+          type: string
+          example: "e40301"
+        text:
+          type: string
+          example: Пользователь не авторизован
+
+
+
+
+
+
+
+
+
