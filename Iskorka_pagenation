@@ -67,61 +67,54 @@ paths:
       responses:
         '200':
           description: Ok
-          headers:
-            paginationTotalCount:
-              description: Общее количество элементов
-              schema:
-                type: integer
-            paginationPageCount:
-              description: Общее количество страниц
-              schema:
-                type: integer
-            paginationCurrentPage:
-              description: Текущая страница
-              schema:
-                type: integer
-            paginationPerPage:
-              description: Количество элементов на странице
-              schema:
-                type: integer
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    sessionId: 
-                      $ref: '#/components/schemas/sessionId'
-                    date:
-                      $ref: '#/components/schemas/date'
-                    time:
-                      $ref: '#/components/schemas/time'
-                    film: 
-                      $ref: '#/components/schemas/film'
-                    freeSeats: 
-                      $ref: '#/components/schemas/freeSeats'
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        sessionId: 
+                          $ref: '#/components/schemas/sessionId'
+                        date:
+                          $ref: '#/components/schemas/date'
+                        time:
+                          $ref: '#/components/schemas/time'
+                        film: 
+                          $ref: '#/components/schemas/film'
+                        freeSeats: 
+                          $ref: '#/components/schemas/freeSeats'
+                  pagination:
+                    $ref: '#/components/schemas/pagination'
             application/xml:
               schema:
-                type: array
-                xml:
-                  name: sessions
-                  wrapped: true
-                items:
-                  type: object
-                  xml:
-                    name: session
-                  properties:
-                    sessionId: 
-                      $ref: '#/components/schemas/sessionId'
-                    date:
-                      $ref: '#/components/schemas/date'
-                    time:
-                      $ref: '#/components/schemas/time'
-                    film: 
-                      $ref: '#/components/schemas/film'
-                    freeSeats: 
-                      $ref: '#/components/schemas/freeSeats'
+                type: object
+                properties:
+                  sessions:
+                    type: array
+                    xml:
+                      name: sessions
+                      wrapped: true
+                    items:
+                      type: object
+                      xml:
+                        name: session
+                      properties:
+                        sessionId: 
+                          $ref: '#/components/schemas/sessionId'
+                        date:
+                          $ref: '#/components/schemas/date'
+                        time:
+                          $ref: '#/components/schemas/time'
+                        film: 
+                          $ref: '#/components/schemas/film'
+                        freeSeats: 
+                          $ref: '#/components/schemas/freeSeats'
+                  pagination:
+                    $ref: '#/components/schemas/pagination'
         '400':
           description: Bad Request
           content:
@@ -175,6 +168,51 @@ paths:
                     $ref: '#/components/schemas/price'
                   hall:
                     $ref: '#/components/schemas/hall'
+            application/xml:
+              schema:
+                type: object
+                xml:
+                  name: session
+                properties:
+                  sessionId: 
+                    $ref: '#/components/schemas/sessionId'
+                  date:
+                    $ref: '#/components/schemas/date'
+                  time:
+                    $ref: '#/components/schemas/time'
+                  film: 
+                    $ref: '#/components/schemas/film'
+                  price:
+                    $ref: '#/components/schemas/price'
+                  hall:
+                    $ref: '#/components/schemas/hall'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
     patch:
       summary: Изменение времени сеанса
       description: Метод изменения времени сеанса (доступен для администратора кинотеатра)
@@ -257,54 +295,71 @@ paths:
             minimum: 1
             maximum: 100
             default: 20
+        - name: status
+          in: query
+          description: Фильтр по статусу бронирования
+          schema:
+            $ref: '#/components/schemas/status'
       responses:
         '200':
             description: Ok
-            headers:
-              paginationTotalCount:
-                description: Общее количество элементов
-                schema:
-                  type: integer
-              paginationPageCount:
-                description: Общее количество страниц
-                schema:
-                  type: integer
-              paginationCurrentPage:
-                description: Текущая страница
-                schema:
-                  type: integer
-              paginationPerPage:
-                description: Количество элементов на странице
-                schema:
-                  type: integer
             content:
               application/json:
                 schema:
                   type: object
                   properties:
-                    bookingId: 
-                      $ref: '#/components/schemas/bookingId'
-                    session:
-                      $ref: '#/components/schemas/session'
-                    status:
-                      $ref: '#/components/schemas/status'
+                    items:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          bookingId: 
+                            $ref: '#/components/schemas/bookingId'
+                          session:
+                            $ref: '#/components/schemas/session'
+                          status:
+                            $ref: '#/components/schemas/status'
+                          place:
+                            $ref: '#/components/schemas/place'
+                          createdAt:
+                            $ref: '#/components/schemas/createdAt'
+                    pagination:
+                      $ref: '#/components/schemas/pagination'
               application/xml:
                 schema:
-                  type: array
-                  xml:
-                    name: bookings
-                    wrapped: true
-                  items:
-                    type: object
-                    xml:
-                      name: booking
-                    properties:
-                      bookingId: 
-                        $ref: '#/components/schemas/bookingId'
-                      session:
-                        $ref: '#/components/schemas/session'
-                      status:
-                        $ref: '#/components/schemas/status'
+                  type: object
+                  properties:
+                    bookings:
+                      type: array
+                      xml:
+                        name: bookings
+                        wrapped: true
+                      items:
+                        type: object
+                        xml:
+                          name: booking
+                        properties:
+                          bookingId: 
+                            $ref: '#/components/schemas/bookingId'
+                          session:
+                            $ref: '#/components/schemas/session'
+                          status:
+                            $ref: '#/components/schemas/status'
+                          place:
+                            $ref: '#/components/schemas/place'
+                          createdAt:
+                            $ref: '#/components/schemas/createdAt'
+                    pagination:
+                      $ref: '#/components/schemas/pagination'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
         '401':
           description: Unauthorized
           content:
@@ -349,6 +404,24 @@ paths:
               application/json:
                 schema:
                   $ref: '#/components/schemas/booking'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
         '404':
           description: Not Found
           content:
@@ -469,6 +542,15 @@ paths:
                     type: string
                     enum:
                        - canceled
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
         '401':
             description: Unauthorized
             content:
@@ -507,6 +589,31 @@ paths:
                 $ref: '#/components/schemas/ErrorMessage'          
 components:
   schemas:
+    pagination:
+      type: object
+      description: Информация о пагинации
+      properties:
+        currentPage:
+          type: integer
+          description: Текущая страница
+          minimum: 1
+          example: 1
+        perPage:
+          type: integer
+          description: Количество элементов на странице
+          minimum: 1
+          maximum: 100
+          example: 20
+        totalItems:
+          type: integer
+          description: Общее количество элементов
+          minimum: 0
+          example: 150
+        totalPages:
+          type: integer
+          description: Общее количество страниц
+          minimum: 0
+          example: 8
     sessionId: 
       description: идентификатор сеанса
       type: integer
@@ -627,6 +734,11 @@ components:
           $ref: '#/components/schemas/film'
         price:
           $ref: '#/components/schemas/price'
+    createdAt:
+      description: Дата и время создания
+      type: string
+      format: date-time
+      example: "2026-03-22T10:30:00Z"
     booking:
       type: object
       properties:
@@ -641,10 +753,7 @@ components:
         status:
           $ref: '#/components/schemas/status'
         createdAt:
-          description: Дата и время создания бронирования
-          type: string
-          format: date-time
-          example: "2026-01-22T10:30:00Z"
+          $ref: '#/components/schemas/createdAt'
     ErrorMessage:
       type: object
       properties: 
