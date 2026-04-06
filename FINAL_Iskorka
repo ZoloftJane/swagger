@@ -1,0 +1,1083 @@
+openapi: 3.0.1
+info:
+  title: API кинотеатра Искорка
+  description: |
+    __API кинотетатра "Искорка" c поддержкой бонусных карт__
+  version: 2.0.0
+servers: 
+  - url: https://virtserver.swaggerhub.com/vasina/Iskorka/2.0.0
+  - url: http://127.0.1.1
+paths:
+  /sessions:
+    get:
+      summary: Расписание
+      description: Метод запроса расписания в кинотеатре
+      tags:
+        - Расписание
+      parameters:
+        - name: date
+          in: query
+          description: Выбор даты
+          schema:
+            type: string
+            format: date
+          example: "22-01-2026"
+        - name: timePeriod
+          in: query
+          description: Выбор времени дня
+          schema:
+            type: string
+            enum:
+              - "Утро (с 09-00 до 12-00)"
+              - "День (с 12-00 до 17-00)"
+              - "Вечер (с 17-00 до 22-00)"
+          example: "Утро (с 09-00 до 12-00)"
+        - name: freeSeats
+          in: query
+          description: Есть ли свободные места
+          schema:
+            type: boolean
+            default: true
+        - name: sort
+          in: query
+          description: Порядок вывода расписания
+          schema:
+            type: string
+            default: byDateAsc
+            enum:
+              - byDateAsc
+              - byDateDesc
+              - byTimePeriodAsc
+              - byTimePeriodDesc
+        - name: page
+          in: query
+          description: Номер страницы для пагинации
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: size
+          in: query
+          description: Количество элементов на странице
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        sessionId: 
+                          $ref: '#/components/schemas/sessionId'
+                        date:
+                          $ref: '#/components/schemas/date'
+                        time:
+                          $ref: '#/components/schemas/time'
+                        film: 
+                          $ref: '#/components/schemas/film'
+                        freeSeats: 
+                          $ref: '#/components/schemas/freeSeats'
+                  pagination:
+                    $ref: '#/components/schemas/pagination'
+            application/xml:
+              schema:
+                type: object
+                properties:
+                  sessions:
+                    type: array
+                    xml:
+                      name: sessions
+                      wrapped: true
+                    items:
+                      type: object
+                      xml:
+                        name: session
+                      properties:
+                        sessionId: 
+                          $ref: '#/components/schemas/sessionId'
+                        date:
+                          $ref: '#/components/schemas/date'
+                        time:
+                          $ref: '#/components/schemas/time'
+                        film: 
+                          $ref: '#/components/schemas/film'
+                        freeSeats: 
+                          $ref: '#/components/schemas/freeSeats'
+                  pagination:
+                    $ref: '#/components/schemas/pagination'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+  /sessions/{sessionId}:
+    get:
+      summary: Наличие мест на сеанс
+      description: Метод выбора мест на сеанс
+      tags:
+        - Просмотр сеанса
+      parameters:
+        - name: sessionId
+          description: Сеанс кинопоказа
+          in: path
+          required: true
+          schema:
+            description: идентификатор сеана
+            type: integer
+            example: 111
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionId: 
+                    $ref: '#/components/schemas/sessionId'
+                  date:
+                    $ref: '#/components/schemas/date'
+                  time:
+                    $ref: '#/components/schemas/time'
+                  film: 
+                    $ref: '#/components/schemas/film'
+                  price:
+                    $ref: '#/components/schemas/price'
+                  hall:
+                    $ref: '#/components/schemas/hall'
+            application/xml:
+              schema:
+                type: object
+                xml:
+                  name: session
+                properties:
+                  sessionId: 
+                    $ref: '#/components/schemas/sessionId'
+                  date:
+                    $ref: '#/components/schemas/date'
+                  time:
+                    $ref: '#/components/schemas/time'
+                  film: 
+                    $ref: '#/components/schemas/film'
+                  price:
+                    $ref: '#/components/schemas/price'
+                  hall:
+                    $ref: '#/components/schemas/hall'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+    patch:
+      summary: Изменение времени сеанса
+      description: Метод изменения времени сеанса (доступен для администратора кинотеатра)
+      tags:
+        - Время сеанса
+      parameters:
+        - name: sessionId
+          description: идентификатор сеанса
+          in: path
+          required: true
+          schema:
+            description: идентификатор сеанса
+            type: integer
+            example: 111
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sessionId: 
+                  $ref: '#/components/schemas/sessionId'
+                date:
+                  $ref: '#/components/schemas/date'
+                time:
+                  $ref: '#/components/schemas/time'
+                film: 
+                  $ref: '#/components/schemas/film'
+      responses:                    
+       '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionId: 
+                    $ref: '#/components/schemas/sessionId'
+                  date:
+                    $ref: '#/components/schemas/date'
+                  time:
+                    $ref: '#/components/schemas/time'
+                  film: 
+                    $ref: '#/components/schemas/film'
+            application/xml:
+              schema:
+                type: object
+                xml:  
+                  name: sessionId
+                properties:
+                  sessionId: 
+                    $ref: '#/components/schemas/sessionId'
+                  date:
+                    $ref: '#/components/schemas/date'
+                  time:
+                    $ref: '#/components/schemas/time'
+                  film: 
+                    $ref: '#/components/schemas/film'
+  /booking:
+    get:
+      summary: Список бронирований
+      description: |
+        Метод для вывода всех бронирований <br/>
+        Пользователь должен быть авторизован
+      tags:
+        - Бронирования
+      parameters:
+        - name: page
+          in: query
+          description: Номер страницы для пагинации
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: size
+          in: query
+          description: Количество элементов на странице
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: status
+          in: query
+          description: Фильтр по статусу бронирования
+          schema:
+            $ref: '#/components/schemas/status'
+        - name: usedBonusCard # новый отбор по наличию бонусной карты
+          in: query
+          schema:
+            type: boolean
+          example: true
+      responses:
+        '200':
+            description: Ok
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    items:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          bookingId: 
+                            $ref: '#/components/schemas/bookingId'
+                          session:
+                            $ref: '#/components/schemas/session'
+                          status:
+                            $ref: '#/components/schemas/status'
+                          place:
+                            $ref: '#/components/schemas/place'
+                          createdAt:
+                            $ref: '#/components/schemas/createdAt'
+                    pagination:
+                      $ref: '#/components/schemas/pagination'
+              application/xml:
+                schema:
+                  type: object
+                  properties:
+                    bookings:
+                      type: array
+                      xml:
+                        name: bookings
+                        wrapped: true
+                      items:
+                        type: object
+                        xml:
+                          name: booking
+                        properties:
+                          bookingId: 
+                            $ref: '#/components/schemas/bookingId'
+                          session:
+                            $ref: '#/components/schemas/session'
+                          status:
+                            $ref: '#/components/schemas/status'
+                          place:
+                            $ref: '#/components/schemas/place'
+                          createdAt:
+                            $ref: '#/components/schemas/createdAt'
+                    pagination:
+                      $ref: '#/components/schemas/pagination'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+    post:
+      summary: Создать заказ
+      description: |
+        Метод для создания заказа<br/>
+        Пользователь должен быть авторизован
+      tags:
+        - Заказы
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bookingId:
+                  $ref: '#/components/schemas/bookingId'
+                sessionId:
+                  $ref: '#/components/schemas/sessionId'
+                place:
+                  $ref: '#/components/schemas/place'
+                usedBonusCard:
+                  $ref: '#/components/schemas/usedBonusCard'
+                bonusPaymentAmount:
+                  $ref: '#/components/schemas/bonusPaymentAmount'
+                cashPaymentAmount:
+                  $ref: '#/components/schemas/cashPaymentAmount'
+                earnedBonus:
+                  $ref: '#/components/schemas/earnedBonus' 
+      responses:
+        '200':
+            description: Ok
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/booking'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '409':
+          description: Place already booked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+  /booking/{bookingId}:
+    get:
+      summary: Информация о бронировании
+      description: |
+        Метод для просмотра бронирования <br/>
+        Пользователь должен быть авторизован
+      tags:
+        - Бронирование
+      parameters:
+        - name: bookingId
+          description: Идентификатор бронирования
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/bookingId'
+      responses:
+        '200':
+            description: Ok
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/booking'
+              application/xml:
+                schema:
+                  $ref: '#/components/schemas/booking'
+        '401':
+            description: Unauthorized
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorMessage'
+              application/xml:
+                schema:
+                  $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+    patch:
+      summary: Отмена бронирования (не delete)
+      description: |
+        Метод для отмены бронирования (без полного удаления бронирования) <br/>
+        Пользователь должен быть авторизован
+      tags:
+        - Отмена бронирования
+      parameters:
+        - name: bookingId
+          description: Идентификатор бронирования
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/bookingId'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bookingId: 
+                    $ref: '#/components/schemas/bookingId'
+                  state:
+                    type: string
+                    enum:
+                       - canceled   
+            application/xml:
+              schema:
+                type: object
+                xml:
+                  name: booking
+                  wrapped: true
+                properties:
+                  bookingId: 
+                    $ref: '#/components/schemas/bookingId'
+                  state:
+                    type: string
+                    enum:
+                       - canceled
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+            description: Unauthorized
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorMessage'
+              application/xml:
+                schema:
+                  $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '409':
+          description: Booking already canceled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'          
+  /bonus_cards: #Новое
+    post:
+      summary: Оформление бонусной карты
+      description: |
+        Создаёт новую бонусную карту для пользователя.<br/>
+        Пользователь должен быть авторизован.
+      tags:
+        - Бонусная программа
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                customerId:
+                  $ref: '#/components/schemas/customerId'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cardId:
+                    $ref: '#/components/schemas/cardId'
+                  bonusCardNumber:
+                    $ref: '#/components/schemas/bonusCardNumber'
+                  bonusBalance:
+                    type: integer
+                    description: Начальный баланс (всегда 0)
+                    example: 0
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+  /bonus_cards/{cardId}:
+    get:
+      summary: Баланс карты
+      description: |
+        Получение баланса бонусной карты.<br/>
+        Пользователь должен быть авторизован.
+      tags:
+        - bonus
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 111
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/bonusCard'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/bonusCard'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+  /bonus-cards/{cardId}/transactions:
+    get:
+      summary: История транзакций
+      description: |
+        История транзакций пользователя по бонусной карте.<br/>
+        Пользователь должен быть авторизован.
+      tags:
+        - bonus
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: transactionType
+          in: query
+          schema:
+            $ref: '#/components/schemas/transactionType'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/bonusTransaction'
+                  pagination:
+                    $ref: '#/components/schemas/pagination'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+  /reports:
+    get:
+      summary: Ежемесячный отчет по бонусам
+      description: |
+        Ежемесячный отчет:<br/>
+        - как часто клиенты используют бонусную карту при бронировании;<br/>
+        - какую часть стоимости билетов (%) клиенты оплачивают бонусными баллами.
+      tags:
+        - reports
+      parameters:
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}$'
+            example: '2026-04'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/monthlyBonusReport'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+components:
+  schemas:
+    pagination:
+      type: object
+      description: Информация о пагинации
+      properties:
+        currentPage:
+          type: integer
+          description: Текущая страница
+          minimum: 1
+          example: 1
+        perPage:
+          type: integer
+          description: Количество элементов на странице
+          minimum: 1
+          maximum: 100
+          example: 20
+        totalItems:
+          type: integer
+          description: Общее количество элементов
+          minimum: 0
+          example: 150
+        totalPages:
+          type: integer
+          description: Общее количество страниц
+          minimum: 0
+          example: 8
+    sessionId: 
+      description: идентификатор сеанса
+      type: integer
+      example: 111
+    date:
+      description: дата сеанса
+      type: string
+      format: date
+      example: 22-03-2026
+    time:
+      description: время сеанса
+      type: string
+      format: time
+      example: "09:30"
+    film: 
+      description: Расписание
+      type: string
+      example: Домовенок Кузя
+    price:
+      description: Цена
+      type: string
+      example: "500.00"
+    hall:
+      description: зал
+      type: array
+      items:
+        type: object
+        properties:
+          row:
+            description: ряд
+            type: integer
+            enum:
+              - 1
+              - 2
+              - 3
+              - 4
+              - 5
+              - 6
+              - 7
+            example: 3
+          seat:
+            description: место
+            type: integer
+            enum:
+              - 1
+              - 2
+              - 3
+              - 4
+              - 5
+              - 6
+              - 7
+              - 8
+              - 9
+            example: 5
+          isAvailable:
+            description: доступность места
+            type: boolean
+            example: true
+    freeSeats: 
+      type: boolean
+      description: Наличие свободных мест
+      example: true
+    bookingId: 
+      description: идентификатор бронирования
+      type: integer
+      example: 123
+    status: 
+      description: Статус бронирования
+      type: string
+      enum:
+         - "new"
+         - "done"
+         - "deleted"
+      example: "done"
+    cardId:  # Новое
+      description: идентификатор бонусной карты
+      type: integer
+      example: 123
+    bonusCardNumber:  # Новое
+      description: Номер бонусной карты
+      type: string
+      example: "1234-5678-9012-3456"
+    bonusBalance: # Новое
+      description: Текущий баланс бонусных баллов
+      type: string
+      example: "1100.00"
+    bonusTransaction:
+      type: object
+      properties:
+        transactionId: # Новое
+          description: идентификатор транзации
+          type: integer
+          example: 111
+        transactionType: # Новое
+          description: Тип тразакции (списание, начисление)
+          type: string
+          enum:
+             - "earn"
+             - "spent"
+          example: "earn"
+        amount: # Новое
+          description: Сумма баллов
+          type: string
+          example: "11100.00"
+    transactionType: # Новое
+          description: Тип тразакции (списание, начисление)
+          type: string
+          enum:
+             - "earn"
+             - "spent"
+          example: "earn"
+    usedBonusCard:  # Новое
+      description: Использовалась ли бонусная карта
+      type: boolean
+      example: true
+    bonusPaymentAmount:  # Новое
+      description: Сумма (в рублях), оплаченная бонусными баллами, максимум 50% от цены
+      type: string
+      example: "100.00"
+    cashPaymentAmount: # Новое
+      description: Сумма, оплаченная реальными деньгами
+      type: string
+      example: "250.00"
+    earnedBonus: # Новое
+      description: Баллы, начисленные после оплаты (10% от полной стоимости)
+      type: string
+      example: "25.00"
+    place: 
+      description: Забронированное место
+      type: object
+      properties:
+        row:
+          description: ряд
+          type: integer
+          enum:
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+            - 6
+            - 7
+          example: 3
+        seat:
+          description: место
+          type: integer
+          enum:
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+            - 6
+            - 7
+            - 8
+            - 9
+          example: 5
+    customerId: 
+      description: идентификатор пользователя
+      type: integer
+      example: 123
+    session:
+      type: object
+      properties:
+        sessionId: 
+          $ref: '#/components/schemas/sessionId'
+        date: 
+          $ref: '#/components/schemas/date'
+        time: 
+          $ref: '#/components/schemas/time'
+        film:
+          $ref: '#/components/schemas/film'
+        price:
+          $ref: '#/components/schemas/price'
+    createdAt:
+      description: Дата и время создания
+      type: string
+      format: date-time
+      example: "2026-03-22T10:30:00Z"
+    booking:
+      type: object
+      properties:
+        sessionId: 
+          $ref: '#/components/schemas/bookingId'
+        customerId: 
+          $ref: '#/components/schemas/customerId'
+        session: 
+          $ref: '#/components/schemas/session'
+        place: 
+          $ref: '#/components/schemas/place'
+        status:
+          $ref: '#/components/schemas/status'
+        usedBonusCard:
+          $ref: '#/components/schemas/usedBonusCard'
+        bonusPaymentAmount:
+          $ref: '#/components/schemas/bonusPaymentAmount'
+        cashPaymentAmount:
+          $ref: '#/components/schemas/cashPaymentAmount'
+        earnedBonus:
+          $ref: '#/components/schemas/earnedBonus' 
+        createdAt:
+          $ref: '#/components/schemas/createdAt'
+    bonusCard: #Новое
+      type: object
+      properties:
+        cardId: 
+          $ref: '#/components/schemas/cardId'
+        bonusCardNumber: 
+          $ref: '#/components/schemas/bonusCardNumber'
+        bonusBalance: 
+          $ref: '#/components/schemas/bonusBalance'
+        customerId: 
+          $ref: '#/components/schemas/customerId'
+    monthlyBonusReport: #Новое
+      type: object
+      properties:
+        totalBookingsWithCard:
+          description: Количество бронирований с бонусной картой
+          type: integer
+          example: 155
+        totalBookings:
+          description: Общее количество бронирований
+          type: integer
+          example: 206
+        cardUsagePercent:
+          description: Процент бронирований с бонусной картой
+          type: string
+          example: "70.0%"
+        avgBonusPaidPercent:
+          description: Процент оплаты баллами от общей выручки
+          type: string
+          example: "85.0%"
+        totalBonusesCredited:
+          description: Количество выданных бонусов
+          type: string
+          example: "6800.00"
+        totalBonusesUsed:
+          description: Количество использованных
+          type: string
+          example: "5200.00"
+    ErrorMessage:
+      type: object
+      properties: 
+        code:
+          type: string
+          example: "40101"
+        text:
+          type: string
+          example: Пользователь не авторизован
+       
+
+
+
+
+
+
+
+
