@@ -54,21 +54,20 @@
 ### Какие изменения потребуется внести в существующие методы API для решения задачи?
 
 1. Метод **POST /booking** (создание заказа): потребуется добавить новые параметры при создании (дополнить тело запроса).
-2. Метод **PATCH / booking/{bookingId}**: при переходе в status=done проверять оплату и начислять бонусы если не начислено.
-3. Метод **GET /booking**: добавить фильтр usedBonusCard (true/false) для отчета.
-4. Дополнить блок **components** для схемы ответа по booking.
+2. Метод **GET /booking**: добавить фильтр usedBonusCard (true/false) для отчета.
+3. Дополнить блок **components** для схемы ответа по booking.
 
 ### Требуется ли создание новых методов? Если да, опишите новые методы
 
 1. Оформление бонусной карты
 * **POST/bonus_cards**
 * Параметры запроса: customerId (integer, required)
-* Параметры ответа: card_id (integer), bonusBalance
+* Параметры ответа: cardId (integer), bonusCardNumber, bonusBalance
 
 2. Получение баланса бонусной карты
 * **GET/bonus_cards/{cardId}**
 * Параметры запроса: cardId (integer)
-* Параметры ответа: card_id (integer), bonusCardNumber(string), bonusBalance (integer), customer_id (integer)
+* Параметры ответа: cardId (integer), bonusCardNumber(string), bonusBalance (integer), customer_id (integer)
 
 3. История транзакций карты
 * **GET/bonus_cards/{cardId}/transactions**
